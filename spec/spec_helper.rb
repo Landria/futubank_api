@@ -1,7 +1,7 @@
 require "bundler/setup"
 require "futubank_api"
-#require 'webmock/rspec'
-#require 'pry'
+require 'webmock/rspec'
+require 'pry'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

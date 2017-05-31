@@ -1,11 +1,17 @@
 module FutubankAPI
   class Response
 
-    SUCCESS_VALUE = ['True', '3DS']
+    SUCCESS_VALUES = %w[ok COMPLETE].freeze
 
-    def initialize response
+    def initialize(response)
       @response = response
-      @body = response.body.to_json
+      puts "BODY = #{response.body.force_encoding('utf-8')}"
+      @body = JSON.parse response.body.force_encoding('utf-8')
+    rescue
+      @body = { 'errors' => response.body }
+    ensure
+      @body ||= {}
+      @body = @body.with_indifferent_access
     end
 
     def ok?
@@ -13,65 +19,66 @@ module FutubankAPI
     end
 
     def connectivity_issue?
-      parsing_errors?
-    end
-
-    def duplicate_order_id?
-      response_code == 'DUPLICATE_ORDER_ID'
+      parsing_errors? || @response.status != 200
     end
 
     def message
-      if @body.errors.empty?
-        response_code
-      else
-        @body.errors.join
-      end
+      response_message
     end
 
     def error?
-      if parsing_errors?
+      if errors?
         true
       else
-        !SUCCESS_VALUE.include? response_code
+        !SUCCESS_VALUES.include? response_code
       end
     end
 
     def three_ds?
-      ok? && response_code == '3DS'
+      ok? && (attributes['acs_url'] && attributes['PaReq'] && attributes['MD'])
     end
 
     def three_ds_attributes
-      if three_ds?
-        { url: attributes['ACSUrl'],
-          pa_req: attributes['PaReq'],
-          md: attributes['ThreeDSKey'] }
-      else
-        nil
-      end
+      {
+        url: attributes['acs_url'],
+        pa_req: attributes['PaReq'],
+        md: attributes['MD']
+      } if three_ds?
     end
 
     def response_code
-      if SUCCESS_VALUE.include? attributes['Success']
-        attributes['Success']
-      else
-        attributes['ErrCode']
-      end
+      @body['status'] || attributes['state']
+    end
+
+    def response_message
+      @body['message'] || @body&.dig('errors', 'message') || attributes['message'] || attributes['state']
     end
 
     # parse all attributes from response to Hash
     # example out of this method:
-    #   {"success" => "True", "OrderId" => "-1", ...  }
-    #
+    # ошибка:
+    # {"field_errors"=>{"amount"=>"Введите число.", "client_ip"=>"Это поле обязательно.", "currency"=>"Это поле обязательно.", "description"=>"Это поле обязательно.", "merchant"=>"Неверный идентификатор магазина; Поле merchant должно быть заполнено", "month"=>"Это поле обязательно.", "order_id"=>"Это поле обязательно.", "signature"=>"Это поле обязательно.", "unix_timestamp"=>"Это поле обязательно.", "year"=>"Это поле обязательно."}, "form_errors"=>"", "message"=>"Не заполнены поля: месяц окончания действия карты, ip адрес клиента, номер заказа, год окончания действия карты, текущая дата на сервере, идентификатор магазина, криптографическая подпись, описание заказа, валюта операции; Сумма операции: введите число.", "status"=>"error"}
+    # транзакция без 3DS
+    # {"status": "ok", "transaction": {"transaction_id": 3152,"amount": "100.01", "currency": "RUB","message": "Одобрено","meta": "","order_id": 10001,"state": "COMPLETE","created_datetime": "2014-07-10T06:27:29.815069+00:00","recurring_token": "","testing": "1" // признак тестовой транзакции}}
+    # транзакция с 3DS
+    # {"status": "ok", "transaction": {"transaction_id": 3154,"acs_url": "https://3ds2.mmbank.ru/acs2/pa?id=375208804008360","state": "WAITING_FOR_3DS","MD": "112317-FD62EF9285BBF564","PaReq": "eJxVUl1v4jAQ  ..... ","TermUrl": ""}}
     def attributes
-      @attributes ||= @body.children[0]
-        .attributes
-        .inject({}){ |h,attr| h[attr[0]]=attr[1].value; h }
+      @attributes = {}
+      (@body['transaction'] || @body).map do |key, value|
+        @attributes[key] = value
+      end
+
+      @attributes
     end
 
     private
 
+    def errors?
+      @body['errors']&.present? || @body['field_errors']&.present? || @body['form_errors']&.present? || false
+    end
+
     def parsing_errors?
-      !@body.errors.empty?
+      @body['errors'].present?
     end
   end
 end

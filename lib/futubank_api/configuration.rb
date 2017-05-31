@@ -1,7 +1,7 @@
 module FutubankAPI
   module Configuration
     DEFAULT_TIMEOUT = 10
-    #DEFAULT_LOGGER = Logger.new(STDOUT)
+    #DEFAULT_LOGGER = ::Logger.new($stdout)
     attr_accessor :timeout, :logger
 
     def configure
@@ -16,7 +16,7 @@ module FutubankAPI
       self.timeout = DEFAULT_TIMEOUT
       #self.logger  = DEFAULT_LOGGER
       #self.logger.level = Logger::ERROR
-      #self
+      self
     end
   end
 end
