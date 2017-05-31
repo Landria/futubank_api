@@ -1,41 +1,65 @@
 # FutubankApi
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/futubank_api`. To experiment with that code, run `bin/console` for an interactive prompt.
+Простой gem для процесинга карточек через Futubank
 
-TODO: Delete this and the text above, and describe your gem
+## Установка
 
-## Installation
+Добавить в Gemfile:
 
-Add this line to your application's Gemfile:
+    gem 'futubank_api', git: 'ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/futubank_api'
 
-```ruby
-gem 'futubank_api'
-```
+Затем запустить:
 
-And then execute:
+    $ bundle install
 
-    $ bundle
+## Конфигурация
 
-Or install it yourself as:
+Конфигурировать можно так:
 
-    $ gem install futubank_api
+    FutubankAPI.configure do |config|
+      config.timeout = 12 # seconds
+    end
 
-## Usage
+    FutubankAPI.timeout          # => 12
 
-TODO: Write usage instructions here
+А можно и так:
 
-## Development
+    FutubankAPI.timeout = 2
+    FutubankAPI.timeout          # => 2
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+## Использование
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Установите базовый адрес для запросов и ключ мерчанта
 
-## Contributing
+    FutubankAPI::Client.base_url = "https://secure.futubank.com/api/v1"
+    FutubankAPI::Client.key = "MerchantKey"
+    FutubankAPI::Client.secret_key = "MerchantSecretKey"
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/futubank_api. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Выполнять запросы можно двумя способами:
 
+    params = {
+      PAN: '4809386824280323',
+      month: 12,
+      year: 24,
+      CVV: '547',
+      amount: 250.00,
+      cardholder_name: 'John Doe',
+      order_id: 'Some_order_id',
+      client_ip: '192.168.10.2',
+      client_id: '45464600'
+    }
 
-## License
+    PaytureAPI::Client.payment(params)
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+Или же
 
+    client = FutubankAPI::Client.new
+    client.payment(params)
+
+## Контрибьют
+
+1. Fork it
+2. Create your feature branch (`git checkout -b feature-JIRA-ID`)
+3. Commit your changes (`git commit -am 'Added some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request

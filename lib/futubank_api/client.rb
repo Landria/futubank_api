@@ -59,7 +59,7 @@ module FutubankAPI
         payment_method: PAYMENT_METHOD,
         salt: salt,
         unix_timestamp: Time.now.to_i,
-        testing: self.class.testing,
+        testing: self.class.testing || 0,
         description: description
       }
 

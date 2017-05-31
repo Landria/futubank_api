@@ -4,9 +4,6 @@ RSpec.describe FutubankAPI do
   FutubankAPI::Client.merchant_id    = 'miliru'
   FutubankAPI::Client.secret_key     = '79444967C3C5ABC438E0E187AC4D0B5B'
   FutubankAPI::Client.base_url       = "https://secure.futubank.com/api/v1"
-  FutubankAPI::Client.success_url    = 'https://:mili.ru'
-  FutubankAPI::Client.fail_url       = 'https://:mili.ru'
-  FutubankAPI::Client.cancel_url     = ''
   FutubankAPI::Client.testing        = 1
 
   let(:params) do
