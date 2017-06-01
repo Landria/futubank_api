@@ -55,8 +55,8 @@ module FutubankAPI
       ]
     }.freeze
 
-    CURRENCY = 'RUB'
-    PAYMENT_METHOD = 'card'
+    CURRENCY = 'RUB'.freeze
+    PAYMENT_METHOD = 'card'.freeze
 
     def initialize(order_params={})
       @order_params = order_params
@@ -70,7 +70,7 @@ module FutubankAPI
         description: description
       }
 
-      @params = @order_params.merge params
+      @params = params.merge @order_params
     end
 
     class << self
@@ -98,8 +98,8 @@ module FutubankAPI
 
     # Пока метод не работает корректно - api отвечает, то метода нет
     def transaction(transaction_id)
-      @params.merge transaction_id: transaction_id
-      request('transaction')
+      @params[:transaction_id] = transaction_id
+      request('transaction', :get)
     end
 
     private
@@ -113,8 +113,8 @@ module FutubankAPI
         params
       end
 
-      def request(path, url = self.class.base_url)
-        response = connection(url).post path, preapre_params(path)
+      def request(path, req_type = :post)
+        response = connection.send(req_type, path, preapre_params(path))
         #FutubankAPI.logger.info "Futubank response: #{response.inspect}. Futubank timeout = #{FutubankAPI.timeout}"
         #raise FutubankAPI::Error, "http response code #{response.status}" unless response.status == 200
         Response.new response
@@ -124,8 +124,8 @@ module FutubankAPI
         exception
       end
 
-      def connection(url)
-        Faraday.new(url) do |faraday|
+      def connection
+        Faraday.new(self.class.base_url) do |faraday|
           faraday.request :url_encoded
           faraday.adapter Faraday.default_adapter
         end
