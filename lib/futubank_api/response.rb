@@ -3,9 +3,10 @@ module FutubankAPI
 
     SUCCESS_VALUES = %w[ok COMPLETE].freeze
 
+    STATES = %w[PROCESSING WAITING_FOR_3DS COMPLETE FAILED].freeze
+
     def initialize(response)
       @response = response
-      puts "BODY = #{response.body.force_encoding('utf-8')}"
       @body = JSON.parse response.body.force_encoding('utf-8')
     rescue
       @body = { 'errors' => response.body }
@@ -24,6 +25,14 @@ module FutubankAPI
 
     def message
       response_message
+    end
+
+    def transaction_id
+      attributes['transaction_id']
+    end
+
+    def state
+      attributes['state']
     end
 
     def error?

@@ -45,6 +45,13 @@ module FutubankAPI
         transaction
         salt
         unix_timestamp
+      ],
+
+      'transaction': %w[
+        transaction_id
+        merchant
+        unix_timestamp
+        salt
       ]
     }.freeze
 
@@ -67,8 +74,13 @@ module FutubankAPI
     end
 
     class << self
+
       METHODS.each do |m|
         define_method(m) { |*args| instance = new(*args); instance.send(m) }
+      end
+
+      def transaction(transaction_id)
+        new.transaction(transaction_id)
       end
     end
 
@@ -84,6 +96,12 @@ module FutubankAPI
       request('refund')
     end
 
+    # Пока метод не работает корректно - api отвечает, то метода нет
+    def transaction(transaction_id)
+      @params.merge transaction_id: transaction_id
+      request('transaction')
+    end
+
     private
       def actions
        ACTIONS.with_indifferent_access
@@ -95,8 +113,8 @@ module FutubankAPI
         params
       end
 
-      def request(path)
-        response = connection.post path, preapre_params(path)
+      def request(path, url = self.class.base_url)
+        response = connection(url).post path, preapre_params(path)
         #FutubankAPI.logger.info "Futubank response: #{response.inspect}. Futubank timeout = #{FutubankAPI.timeout}"
         #raise FutubankAPI::Error, "http response code #{response.status}" unless response.status == 200
         Response.new response
@@ -106,8 +124,8 @@ module FutubankAPI
         exception
       end
 
-      def connection
-        Faraday.new(self.class.base_url) do |faraday|
+      def connection(url)
+        Faraday.new(url) do |faraday|
           faraday.request :url_encoded
           faraday.adapter Faraday.default_adapter
         end
@@ -122,7 +140,6 @@ module FutubankAPI
 
         values = Hash[hash.sort].map { |k, v| "#{k}=#{v}" }.join('&')
         values.gsub!("\n", '')
-        puts "VALUES = #{values.inspect}"
 
         Digest::SHA1.hexdigest(self.secret_key + (Digest::SHA1.hexdigest(self.secret_key + values)))
       end
@@ -132,7 +149,7 @@ module FutubankAPI
       end
 
       def description
-        "Mili.ru order #{@order_params[:order_id]}"
+        "Mili.ru order #{@order_params[:order_id]}" if @order_params&.dig(:order_id)
       end
   end
 end

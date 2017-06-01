@@ -241,4 +241,22 @@ RSpec.describe FutubankAPI do
       expect(response.message).to eq "MD: введите правильное значение."
     end
   end
+
+  context 'get_state' do
+    it 'gets nil if transaction not exists' do
+      stub_request(:post, "https://secure.futubank.com/api/v1/transaction").to_return(
+        :status => 200,
+        :body => "<h1>Not Found</h1><p>The requested URL /transaction was not found on this server.</p>"
+      )
+      expect(FutubankAPI::Client.transaction('2ERx0LdNLSVcGMfzk5NRW7').state).to eq nil
+    end
+
+    it 'gets state if transaction exists' do
+      stub_request(:post, "https://secure.futubank.com/api/v1/transaction").to_return(
+        :status => 200,
+        :body => "{\"status\": \"ok\", \n  \"transaction\": {\"MD\": \"01LF6LQBATXnLRVmIiUZBA/H0uqjLW2b4WGbGUeeUKOVjOQ3R7XTIkV3hNkaxSArXfSZlBvCsTsFx2EA46uXixo14O6SEPbOoCRC1xVn90Z4EuFuogvVpyp164sWEolrbeAdblc46iZztcao3ADnkGJB3nQPydXWA8L88kel3svLCG+jlAKl1NV7Ch++5hDVzPY+PTBXzwo+h6Wj7SgI4MQMw3Uaeru6GojErYGj8Bm8LS76Jvy3seNuz2MyGszA1uJppqxr0d0qUAy/EpwHGnItNp5w9JI4T4yb+1eam91mnMFBoJvsaRgziC0A3PxiGagM22bLRXWQ4G0fxjeYUWZ2gY9LJiM3qVYg2ShzKFCmRjhH45CVpJ8eIdExu2AK0Kq0TfoC5Mu5aGUgBWAuPA==\", \n  \"PaReq\": \"eJxVUk1zgjAQPfsvmPZOQsAPnJgZWw/1gFL1zlDY0VgJmECr/77ZKI5lJjO772Uf2bfLdwcNsNhC0WkQPAFj8j14spy9pPMNnLMgikd0zBiL6TB+EQPuYDEY8B/QRtZKBD71GSd9apkEdHHIVWvjAc+L89tyJSLKQjbm5J4iU4FeLkS63mYBJ7cEYZVX0KMuRrCoO9XqqxhFISd9gkSnT+LQto2ZElI1svUrqb5y9e3rbhrZjyTpkmzANLUykOq6sB1KtfePpuEEi60GeXowTzuMze23JZhCpPm1AtV6iTxJK+vVugTtbesKMhdmsuTE3cSSiyxFsvscro7zMDkur+vdPLDnN1m4M+MEbzjxvAXBaDCmQxZ7wWQajqc0tlKIO+sqbFQELPQptdbdUmQafOT8QSP7DDnHOq1BFb1lfYYUXKwbtiNhx/aI0Yen3vn7x318RWsHE01oHE5eJyMWjtwUHXoXk3YWLApuatINhhOst4puW9Bht1g2+rdwf02cwe0=\", \n  \"acs_url\": \"https://mpit.minbank.ru/PaReqVISA.jsp\",\n\"state\": \"WAITING_FOR_3DS\",\n\"transaction_id\": \"2ERx0LdNLSVcGMfzk5NRW7\"\n}\n}"
+      )
+      expect(FutubankAPI::Client.transaction('2ERx0LdNLSVcGMfzk5NRW7').state).to eq 'WAITING_FOR_3DS'
+    end
+  end
 end
