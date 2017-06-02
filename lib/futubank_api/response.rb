@@ -5,6 +5,9 @@ module FutubankAPI
 
     STATES = %w[PROCESSING WAITING_FOR_3DS COMPLETE FAILED].freeze
 
+    # !!! Этот код действителен только для Минбанка, и может измениться  с заменой банка, с которым работат futubank
+    DUPLICATE_ORDER_ERROR_CODE = '078'.freeze
+
     def initialize(response)
       @response = response
       @body = JSON.parse response.body.force_encoding('utf-8')
@@ -21,6 +24,10 @@ module FutubankAPI
 
     def connectivity_issue?
       parsing_errors? || @response.status != 200
+    end
+
+    def duplicate_order_id?
+      error_code == DUPLICATE_ORDER_ERROR_CODE
     end
 
     def message
