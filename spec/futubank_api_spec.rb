@@ -100,7 +100,45 @@ RSpec.describe FutubankAPI do
             expect(client.payment.ok?).to be_falsey
             expect(client.payment).to be_a(FutubankAPI::Response)
           end
+
+          it 'has an error_code when failed' do
+            # Ответ на finish-3ds
+              # {
+              #   "message": null,
+              #   "status": "error",
+              #   "transaction": {
+              #     "amount": "123.00",
+              #     "auth_code": null,
+              #     "created_datetime": "2017-05-29 15:36:06.020159+00:00",
+              #     "currency": "RUB",
+              #     "message": null,
+              #     "meta": "",
+              #     "mps_error_code": '055',
+              #     "order_id": "Some_order_id",
+              #     "pan_mask": "480938******0323",
+              #     "payment_method": "card",
+              #     "payment_token": "",
+              #     "recurring_token": "",
+              #     "response_action": null,
+              #     "state": "FAILED",
+              #     "testing": 1,
+              #     "transaction_id": "2ERx0LdNLSVcGMfzk5NRW7"
+              #   }
+            # }
+
+
+            stub_request(:post, "https://secure.futubank.com/api/v1/payment").
+              to_return(:status => 200, :body => "{\n  \"message\": null, \n  \"status\": \"error\", \n  \"transaction\": {\n    \"amount\": \"123.00\", \n    \"auth_code\": null, \n    \"created_datetime\": \"2017-05-29 15:36:06.020159+00:00\", \n    \"currency\": \"RUB\", \n    \"message\": null, \n    \"meta\": \"\", \n    \"mps_error_code\": \"055\", \n    \"order_id\": \"Some_order_id\", \n    \"pan_mask\": \"480938******0323\", \n    \"payment_method\": \"card\", \n    \"payment_token\": \"\", \n    \"recurring_token\": \"\", \n    \"response_action\": null, \n    \"state\": \"FAILED\", \n    \"testing\": 1, \n    \"transaction_id\": \"2ERx0LdNLSVcGMfzk5NRW7\"\n  }\n}")
+
+            client = FutubankAPI::Client.new(params)
+            response = client.payment
+
+            expect(response.error?).to be_truthy
+            expect(response.error_code).to eq "055"
+          end
         end
+
+
       end
     end
 

@@ -43,6 +43,10 @@ module FutubankAPI
       end
     end
 
+    def error_code
+      attributes['mps_error_code'] if error?
+    end
+
     def three_ds?
       ok? && (attributes['acs_url'] && attributes['PaReq'] && attributes['MD'])
     end
@@ -56,7 +60,7 @@ module FutubankAPI
     end
 
     def response_code
-      @body['status'] || attributes['state']
+      @body['status']
     end
 
     def response_message
