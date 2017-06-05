@@ -12,9 +12,9 @@ module FutubankAPI
       @response = response
       @body = JSON.parse response.body.force_encoding('utf-8')
     rescue
-      @body = { 'errors' => response.body }
+      @body = nil
     ensure
-      @body ||= {}
+      @body = { 'errors' => response.body } unless @body.is_a?(Hash)
       @body = @body.with_indifferent_access
     end
 
