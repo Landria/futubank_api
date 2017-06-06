@@ -82,6 +82,10 @@ module FutubankAPI
       def transaction(transaction_id)
         new.transaction(transaction_id)
       end
+
+      def finish_3ds(params)
+        new(params).finish_3ds
+      end
     end
 
     def payment
@@ -96,7 +100,6 @@ module FutubankAPI
       request('refund')
     end
 
-    # Пока метод не работает корректно - api отвечает, то метода нет
     def transaction(transaction_id)
       @params[:transaction_id] = transaction_id
       request('transaction', :get)
@@ -107,19 +110,19 @@ module FutubankAPI
        ACTIONS.with_indifferent_access
       end
 
-      def preapre_params(action)
+      def prepare_params(action)
         params = @params.clone.keep_if { |field, _| actions[action].include? field.to_s }
         params[:signature] = signature(params)
         params
       end
 
       def request(path, req_type = :post)
-        response = connection.send(req_type, path, preapre_params(path))
-        #FutubankAPI.logger.info "Futubank response: #{response.inspect}. Futubank timeout = #{FutubankAPI.timeout}"
-        #raise FutubankAPI::Error, "http response code #{response.status}" unless response.status == 200
+        response = connection.send(req_type, path, prepare_params(path))
+        FutubankAPI.logger&.info "Futubank response: #{response.inspect}. Futubank timeout = #{FutubankAPI.timeout}"
+        #raise FutubankAPI::Error, "http response code #{response.status}" if response.status == 500
         Response.new response
       rescue Faraday::Error::TimeoutError, Timeout::Error, StandardError => exception
-        #FutubankAPI.logger.info "Futubank error: #{exception.message}. Futubank timeout = #{FutubankAPI.timeout}"
+        FutubankAPI.logger&.info "Futubank error: #{exception.message}. Futubank timeout = #{FutubankAPI.timeout}"
         exception.extend FutubankAPI::Error
         exception
       end

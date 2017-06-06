@@ -56,6 +56,15 @@ RSpec.describe FutubankAPI do
         expect(response.ok?).to be_falsey
         expect(response).to be_a(FutubankAPI::Response)
       end
+
+      it 'should has connectivity issue if path not found' do
+        stub_request(:post,"https://secure.futubank.com/api/v1/payment").to_return(:status => 500, :body => '<h1>Server Error (500)</h1>')
+
+        response = FutubankAPI::Client.payment(params)
+        expect(response.connectivity_issue?).to be_truthy
+        expect(response.ok?).to be_falsey
+        expect(response).to be_a(FutubankAPI::Response)
+      end
     end
 
     context 'return successful' do

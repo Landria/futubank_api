@@ -10,11 +10,11 @@ module FutubankAPI
 
     def initialize(response)
       @response = response
-      @body = JSON.parse response.body.force_encoding('utf-8')
+      @body = JSON.parse @response.body.force_encoding('utf-8')
     rescue
-      @body = nil
+      @body = { 'errors' => @response.body }
     ensure
-      @body = { 'errors' => response.body } unless @body.is_a?(Hash)
+      @body ||= { 'errors' => @response.body }
       @body = @body.with_indifferent_access
     end
 
@@ -71,7 +71,7 @@ module FutubankAPI
     end
 
     def response_message
-      @body['message'] || @body&.dig('errors', 'message') || attributes['message'] || attributes['state']
+      @body['message'] || attributes['message'] || attributes['state'] || @body&.dig('errors', 'message')
     end
 
     # parse all attributes from response to Hash
