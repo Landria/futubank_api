@@ -71,7 +71,7 @@ module FutubankAPI
     end
 
     def response_message
-      @body['message'] || attributes['message'] || attributes['state'] || @body&.dig('errors', 'message')
+      @body['message'] || attributes['message'] || attributes['state'] || @body
     end
 
     # parse all attributes from response to Hash
