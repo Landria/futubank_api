@@ -309,5 +309,54 @@ RSpec.describe FutubankAPI do
       expect(client.transaction('2ERx0LdNLSVc0000001').state).to eq 'FAILED'
     end
   end
+
+  context 'check signature' do
+    let(:params) { { auth_code: 991089,
+                     recurring_token: nil,
+                     pan_mask: '481776******3614',
+                     meta: nil,
+                     merchant: 'miliru',
+                     amount: '14400.00',
+                     testing: 0,
+                     salt: '1FB8CCC946D1B9A393AC8E0544BA5171',
+                     state: 'COMPLETE',
+                     payment_method: 'card',
+                     created_datetime: '2017-08-04 10:26:51.711688+00:00',
+                     mps_error_code: 1,
+                     message: 'Операция одобрена',
+                     unix_timestamp: '1501842454',
+                     signature: '6eef0339a08f1edff86ad3e7a1fe99e3bfdd2d8f',
+                     currency: 'RUB',
+                     transaction_id: '1B73QPyGlik1t0mKHwieMp',
+                     order_id: 'production-1531990-0',
+                     payment_token: nil
+    } }
+
+    let(:false_params) { { auth_code: 991089,
+                     recurring_token: nil,
+                     pan_mask: '481776******3614',
+                     meta: nil,
+                     merchant: 'miliru',
+                     amount: 14400_00,
+                     testing: 0,
+                     salt: '1FB8CCC946D1B9A393AC8E0544BA5171',
+                     state: 'COMPLETE',
+                     payment_method: 'card',
+                     created_datetime: '2017-08-04 10:26:51.711688+00:00',
+                     mps_error_code: 1,
+                     message: 'Операция одобрена',
+                     unix_timestamp: '1501842454',
+                     signature: '6eef0339a08f1edff86ad3e7a1fe99e3bfdd2d8f',
+                     currency: 'RUB',
+                     transaction_id: '1B73QPyGlik1t0mKHwieMp',
+                     order_id: 'production-1531990-0',
+                     payment_token: nil
+    } }
+
+    before { @client = FutubankAPI::Client.new }
+
+    it { expect(@client.check_signature(params)).to be_truthy }
+    it { expect(@client.check_signature(false_params)).to be_falsey }
+  end
 end
 

@@ -105,9 +105,14 @@ module FutubankAPI
       request('transaction', :get)
     end
 
+    def check_signature(params)
+      signature_to_check = params.delete(:signature)
+      signature_to_check == signature(params)
+    end
+
     private
       def actions
-       ACTIONS.with_indifferent_access
+        ACTIONS.with_indifferent_access
       end
 
       def prepare_params(action)
