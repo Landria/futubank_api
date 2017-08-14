@@ -149,7 +149,7 @@ module FutubankAPI
         values = Hash[hash.sort].map { |k, v| "#{k}=#{v}" }.join('&')
         values.gsub!("\n", '')
 
-        Digest::SHA1.hexdigest(self.secret_key + (Digest::SHA1.hexdigest(self.secret_key + values)))
+        Digest::SHA1.hexdigest(self.secret_key.to_s + (Digest::SHA1.hexdigest(self.secret_key.to_s + values)))
       end
 
       def salt
